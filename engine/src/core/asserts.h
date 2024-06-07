@@ -13,7 +13,7 @@
 #define debugBreak() __builtin_trap()
 #endif
 
-JAPI void report_assertion_failure(const char* expression, const char* message, const char* file, i32 line);
+KAPI void report_assertion_failure(const char* expression, const char* message, const char* file, i32 line);
 
 #define KASSERT(expr)                                                \
     {                                                                \

@@ -1,7 +1,7 @@
-#include "jmemory.h"
+#include "kmemory.h"
 
 #include "core/logger.h"
-#include "core/jstring.h"
+#include "core/kstring.h"
 #include "platform/platform.h"
 
 // TODO: Custom string lib
@@ -41,9 +41,9 @@ void initialize_memory() {
 void shutdown_memory() {
 }
 
-void* jallocate(u64 size, memory_tag tag) {
+void* kallocate(u64 size, memory_tag tag) {
     if (tag == MEMORY_TAG_UNKNOWN) {
-        JWARN("kallocate called using MEMORY_TAG_UNKNOWN. Re-class this allocation.");
+        KWARN("kallocate called using MEMORY_TAG_UNKNOWN. Re-class this allocation.");
     }
 
     stats.total_allocated += size;
@@ -55,9 +55,9 @@ void* jallocate(u64 size, memory_tag tag) {
     return block;
 }
 
-void jfree(void* block, u64 size, memory_tag tag) {
+void kfree(void* block, u64 size, memory_tag tag) {
     if (tag == MEMORY_TAG_UNKNOWN) {
-        JWARN("kfree called using MEMORY_TAG_UNKNOWN. Re-class this allocation.");
+        KWARN("kfree called using MEMORY_TAG_UNKNOWN. Re-class this allocation.");
     }
 
     stats.total_allocated -= size;
@@ -67,15 +67,15 @@ void jfree(void* block, u64 size, memory_tag tag) {
     platform_free(block, FALSE);
 }
 
-void* jzero_memory(void* block, u64 size) {
+void* kzero_memory(void* block, u64 size) {
     return platform_zero_memory(block, size);
 }
 
-void* jcopy_memory(void* dest, const void* source, u64 size) {
+void* kcopy_memory(void* dest, const void* source, u64 size) {
     return platform_copy_memory(dest, source, size);
 }
 
-void* jset_memory(void* dest, i32 value, u64 size) {
+void* kset_memory(void* dest, i32 value, u64 size) {
     return platform_set_memory(dest, value, size);
 }
 

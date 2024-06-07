@@ -2,7 +2,7 @@
 
 #include "core/application.h"
 #include "core/logger.h"
-#include "core/jmemory.h"
+#include "core/kmemory.h"
 #include "game_types.h"
 
 // Externally-defined function to create a game.
@@ -18,26 +18,26 @@ int main(void) {
   // Request the game instance from the application.
   game game_inst;
   if (!create_game(&game_inst)) {
-    JFATAL("Could not create game!");
+    KFATAL("Could not create game!");
     return -1;
   }
 
   // Ensure the function pointers exist.
   if (!game_inst.render || !game_inst.update || !game_inst.initialize ||
       !game_inst.on_resize) {
-    JFATAL("The game's function pointers must be assigned!");
+    KFATAL("The game's function pointers must be assigned!");
     return -2;
   }
 
   // Initialization.
   if (!application_create(&game_inst)) {
-    JINFO("Application failed to create!.");
+    KINFO("Application failed to create!.");
     return 1;
   }
 
   // Begin the game loop.
   if (!application_run()) {
-    JINFO("Application did not shutdown gracefully.");
+    KINFO("Application did not shutdown gracefully.");
     return 2;
   }
 

@@ -4,7 +4,7 @@
 #include "logger.h"
 
 #include "platform/platform.h"
-#include "core/jmemory.h"
+#include "core/kmemory.h"
 #include "core/event.h"
 #include "core/input.h"
 #include "core/clock.h"
@@ -28,10 +28,11 @@ static application_state app_state;
 // Event handlers
 b8 application_on_event(u16 code, void* sender, void* listener_inst, event_context context);
 b8 application_on_key(u16 code, void* sender, void* listener_inst, event_context context);
+b8 application_on_resized(u16 code, void* sender, void* listener_inst, event_context context);
 
 b8 application_create(game* game_inst) {
     if (initialized) {
-        JERROR("application_create called more than once.");
+        KERROR("application_create called more than once.");
         return FALSE;
     }
 
@@ -42,24 +43,25 @@ b8 application_create(game* game_inst) {
     input_initialize();
 
     // TODO: Remove this
-    JFATAL("A test message: %f", 3.14f);
-    JERROR("A test message: %f", 3.14f);
-    JWARN("A test message: %f", 3.14f);
-    JINFO("A test message: %f", 3.14f);
-    JDEBUG("A test message: %f", 3.14f);
-    JTRACE("A test message: %f", 3.14f);
+    KFATAL("A test message: %f", 3.14f);
+    KERROR("A test message: %f", 3.14f);
+    KWARN("A test message: %f", 3.14f);
+    KINFO("A test message: %f", 3.14f);
+    KDEBUG("A test message: %f", 3.14f);
+    KTRACE("A test message: %f", 3.14f);
 
     app_state.is_running = TRUE;
     app_state.is_suspended = FALSE;
 
-    if(!event_initialize()) {
-        JERROR("Event system failed initialization. Application cannot continue.");
+    if (!event_initialize()) {
+        KERROR("Event system failed initialization. Application cannot continue.");
         return FALSE;
     }
 
     event_register(EVENT_CODE_APPLICATION_QUIT, 0, application_on_event);
     event_register(EVENT_CODE_KEY_PRESSED, 0, application_on_key);
     event_register(EVENT_CODE_KEY_RELEASED, 0, application_on_key);
+    event_register(EVENT_CODE_RESIZED, 0, application_on_resized);
 
     if (!platform_startup(
             &app_state.platform,
@@ -73,13 +75,13 @@ b8 application_create(game* game_inst) {
 
     // Renderer startup
     if (!renderer_initialize(game_inst->app_config.name, &app_state.platform)) {
-        JFATAL("Failed to initialize renderer. Aborting application.");
+        KFATAL("Failed to initialize renderer. Aborting application.");
         return FALSE;
     }
 
     // Initialize the game.
     if (!app_state.game_inst->initialize(app_state.game_inst)) {
-        JFATAL("Game failed to initialize.");
+        KFATAL("Game failed to initialize.");
         return FALSE;
     }
 
@@ -94,11 +96,11 @@ b8 application_run() {
     clock_start(&app_state.clock);
     clock_update(&app_state.clock);
     app_state.last_time = app_state.clock.elapsed;
-    //f64 running_time = 0;
+    //if64 running_time = 0;
     //u8 frame_count = 0;
     f64 target_frame_seconds = 1.0f / 60;
 
-    JINFO(get_memory_usage_str());
+    KINFO(get_memory_usage_str());
 
     while (app_state.is_running) {
         if (!platform_pump_messages(&app_state.platform)) {
@@ -113,14 +115,14 @@ b8 application_run() {
             f64 frame_start_time = platform_get_absolute_time();
 
             if (!app_state.game_inst->update(app_state.game_inst, (f32)delta)) {
-                JFATAL("Game update failed, shutting down.");
+                KFATAL("Game update failed, shutting down.");
                 app_state.is_running = FALSE;
                 break;
             }
 
             // Call the game's render routine.
             if (!app_state.game_inst->render(app_state.game_inst, (f32)delta)) {
-                JFATAL("Game render failed, shutting down.");
+                KFATAL("Game render failed, shutting down.");
                 app_state.is_running = FALSE;
                 break;
             }
@@ -145,7 +147,7 @@ b8 application_run() {
                     platform_sleep(remaining_ms - 1);
                 }
 
-                //frame_count++;
+                //iframe_count++;
             }
 
             // NOTE: Input update/state copying should always be handled
@@ -175,10 +177,15 @@ b8 application_run() {
     return TRUE;
 }
 
+void application_get_framebuffer_size(u32* width, u32* height) {
+    *width = app_state.width;
+    *height = app_state.height;
+}
+
 b8 application_on_event(u16 code, void* sender, void* listener_inst, event_context context) {
     switch (code) {
         case EVENT_CODE_APPLICATION_QUIT: {
-            JINFO("EVENT_CODE_APPLICATION_QUIT recieved, shutting down.\n");
+            KINFO("EVENT_CODE_APPLICATION_QUIT recieved, shutting down.\n");
             app_state.is_running = FALSE;
             return TRUE;
         }
@@ -199,18 +206,50 @@ b8 application_on_key(u16 code, void* sender, void* listener_inst, event_context
             return TRUE;
         } else if (key_code == KEY_A) {
             // Example on checking for a key
-            JDEBUG("Explicit - A key pressed!");
+            KDEBUG("Explicit - A key pressed!");
         } else {
-            JDEBUG("'%c' key pressed in window.", key_code);
+            KDEBUG("'%c' key pressed in window.", key_code);
         }
     } else if (code == EVENT_CODE_KEY_RELEASED) {
         u16 key_code = context.data.u16[0];
         if (key_code == KEY_B) {
             // Example on checking for a key
-            JDEBUG("Explicit - B key released!");
+            KDEBUG("Explicit - B key released!");
         } else {
-            JDEBUG("'%c' key released in window.", key_code);
+            KDEBUG("'%c' key released in window.", key_code);
         }
     }
+    return FALSE;
+}
+
+b8 application_on_resized(u16 code, void* sender, void* listener_inst, event_context context) {
+    if (code == EVENT_CODE_RESIZED) {
+        u16 width = context.data.u16[0];
+        u16 height = context.data.u16[1];
+
+        // Check if different. If so, trigger a resize event.
+        if (width != app_state.width || height != app_state.height) {
+            app_state.width = width;
+            app_state.height = height;
+
+            KDEBUG("Window resize: %i, %i", width, height);
+
+            // Handle minimization
+            if (width == 0 || height == 0) {
+                KINFO("Window minimized, suspending application.");
+                app_state.is_suspended = TRUE;
+                return TRUE;
+            } else {
+                if (app_state.is_suspended) {
+                    KINFO("Window restored, resuming application.");
+                    app_state.is_suspended = FALSE;
+                }
+                app_state.game_inst->on_resize(app_state.game_inst, width, height);
+                renderer_on_resized(width, height);
+            }
+        }
+    }
+
+    // Event purposely not handled to allow other listeners to get this.
     return FALSE;
 }

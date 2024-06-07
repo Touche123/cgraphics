@@ -26,17 +26,17 @@ typedef enum memory_tag {
   MEMORY_TAG_MAX_TAGS
 } memory_tag;
 
-JAPI void initialize_memory();
-JAPI void shutdown_memory();
+KAPI void initialize_memory();
+KAPI void shutdown_memory();
 
-JAPI void *jallocate(u64 size, memory_tag tag);
+KAPI void *kallocate(u64 size, memory_tag tag);
 
-JAPI void jfree(void *block, u64 size, memory_tag tag);
+KAPI void kfree(void *block, u64 size, memory_tag tag);
 
-JAPI void *jzero_memory(void *block, u64 size);
+KAPI void *kzero_memory(void *block, u64 size);
 
-JAPI void *jcopy_memory(void *dest, const void *source, u64 size);
+KAPI void *kcopy_memory(void *dest, const void *source, u64 size);
 
-JAPI void *jset_memory(void *dest, i32 value, u64 size);
+KAPI void *kset_memory(void *dest, i32 value, u64 size);
 
-JAPI char *get_memory_usage_str();
+KAPI char *get_memory_usage_str();

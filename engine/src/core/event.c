@@ -1,6 +1,6 @@
 #include "core/event.h"
 
-#include "core/jmemory.h"
+#include "core/kmemory.h"
 #include "containers/darray.h"
 
 typedef struct registered_event {
@@ -32,7 +32,7 @@ b8 event_initialize() {
         return FALSE;
     }
     is_initialized = FALSE;
-    jzero_memory(&state, sizeof(state));
+    kzero_memory(&state, sizeof(state));
 
     is_initialized = TRUE;
 
