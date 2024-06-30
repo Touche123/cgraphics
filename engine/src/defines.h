@@ -20,6 +20,10 @@ typedef double f64;
 typedef int b32;
 typedef char b8;
 
+#define true 1
+
+#define false 0
+
 // Properly define static assertions.
 #if defined(__clang__) || defined(__gcc__)
 #define STATIC_ASSERT _Static_assert
