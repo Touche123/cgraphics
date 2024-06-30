@@ -14,7 +14,7 @@ b8 renderer_initialize(const char* application_name, struct platform_state* plat
     backend = kallocate(sizeof(renderer_backend), MEMORY_TAG_RENDERER);
 
     // TODO: make this configurable.
-    renderer_backend_create(RENDERER_BACKEND_TYPE_VULKAN, plat_state, backend);
+    renderer_backend_create(RENDERER_BACKEND_TYPE_OPENGL, plat_state, backend);
     backend->frame_number = 0;
 
     if (!backend->initialize(backend, application_name, plat_state)) {

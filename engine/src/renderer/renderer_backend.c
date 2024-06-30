@@ -1,6 +1,7 @@
 #include "renderer_backend.h"
 
 #include "vulkan/vulkan_backend.h"
+#include "opengl/opengl_backend.h"
 
 b8 renderer_backend_create(renderer_backend_type type,
                            struct platform_state *plat_state,
@@ -14,6 +15,15 @@ b8 renderer_backend_create(renderer_backend_type type,
     out_renderer_backend->end_frame = vulkan_renderer_backend_end_frame;
     out_renderer_backend->resized = vulkan_renderer_backend_on_resized;
 
+    return TRUE;
+  }
+
+  if (type == RENDERER_BACKEND_TYPE_OPENGL) {
+    out_renderer_backend->initialize = opengl_renderer_backend_initialize;
+    out_renderer_backend->shutdown = opengl_renderer_backend_shutdown;
+    out_renderer_backend->begin_frame = opengl_renderer_backend_begin_frame;
+    out_renderer_backend->end_frame = opengl_renderer_backend_end_frame;
+    out_renderer_backend->resized = opengl_renderer_backend_on_resized;
     return TRUE;
   }
 

@@ -13,10 +13,14 @@
 #include <windowsx.h>  // param input extraction
 #include <stdlib.h>
 
-// For surface creation
+// For surface creation vulkan
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_win32.h>
 #include "renderer/vulkan/vulkan_types.inl"
+
+// For surface creation opengl
+#include "../ext/glad/include/glad/glad.h"
+#include "renderer/opengl/opengl_types.inl"
 
 typedef struct internal_state {
     HINSTANCE h_instance;
@@ -136,8 +140,8 @@ b8 platform_pump_messages(platform_state *plat_state) {
     while (PeekMessageA(&message, NULL, 0, 0, PM_REMOVE)) {
         TranslateMessage(&message);
         DispatchMessageA(&message);
-    }
-
+    } 
+  
     return TRUE;
 }
 
@@ -214,6 +218,60 @@ b8 platform_create_vulkan_surface(platform_state *plat_state, vulkan_context *co
 
     context->surface = state->surface;
     return TRUE;
+}
+
+// Surface creation for opengl
+b8 platform_create_opengl_surface(platform_state* plat_state, opengl_context* context) {
+    internal_state *state = (internal_state *)plat_state->internal_state;
+
+    PIXELFORMATDESCRIPTOR pfd = {};
+    pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+    pfd.nVersion = 1;
+    pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+    pfd.iPixelType = PFD_TYPE_RGBA;
+    pfd.cColorBits = 32;
+    pfd.cDepthBits = 24;
+    pfd.cStencilBits = 8;
+    pfd.iLayerType = PFD_MAIN_PLANE;
+
+    HDC hdc = GetDC(state->hwnd);
+
+    int pixelFormat = ChoosePixelFormat(hdc, &pfd);
+    if (!pixelFormat) {
+        KFATAL("Opengl pixelformat could not be determined.");
+        return FALSE;
+    }
+
+    if (!SetPixelFormat(hdc, pixelFormat, &pfd)) {
+        KFATAL("Opengl pixelformat could not be set.");
+        return FALSE;
+    }
+
+    HGLRC hglrc = wglCreateContext(hdc);
+    if (!hglrc) {
+        KFATAL("Opengl could not create wgl context.");
+        return FALSE;
+    }
+    
+    if (!wglMakeCurrent(hdc, hglrc)) {
+        KFATAL("Opengl wglmakecurrent failed.");
+        return FALSE;
+    }
+
+    if (!gladLoadGL()) {
+        KFATAL("Opengl gladloadgl failed.");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+void platform_swapbuffers_opengl(platform_state* plat_state)
+{
+    internal_state *state = (internal_state *)plat_state->internal_state;
+    HDC hdc = GetDC(state->hwnd);
+    SwapBuffers(hdc);
+    //ReleaseDC(state->hwnd, hdc);
 }
 
 LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARAM l_param) {

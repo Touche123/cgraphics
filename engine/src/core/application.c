@@ -37,7 +37,7 @@ b8 application_create(game* game_inst) {
     }
 
     app_state.game_inst = game_inst;
-
+    
     // Initialize subsystems.
     initialize_logging();
     input_initialize();
@@ -131,7 +131,8 @@ b8 application_run() {
             render_packet packet;
             packet.delta_time = delta;
             renderer_draw_frame(&packet);
-
+            platform_swapbuffers_opengl(&app_state.platform);
+            
             // Figure out how long the frame took and, if below
             f64 frame_end_time = platform_get_absolute_time();
             f64 frame_elapsed_time = frame_end_time - frame_start_time;
